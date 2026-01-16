@@ -62,3 +62,18 @@ function getNames(sheetName) {
 function submitOrder(data) {
   return InputOrder.submitOrder(data);
 }
+
+function tempAuthorizeDriveAccess() {
+  DriveApp.getFolders(); // This line will trigger the authorization prompt
+}
+
+function tempAuthorizeFetch(e) {
+  var response = UrlFetchApp.fetch("https://guragiru.com/");
+  Logger.log(response.getContentText());
+}
+
+function tempAuthorizeCreateDriveFile() {
+  var folder = DriveApp.getFolderById(OUTPUT_FOLDER_ID);
+  var file = folder.createFile("Test File", "Hello World!");
+  Logger.log(file.getUrl());
+}

@@ -493,9 +493,45 @@
         </div>
         <div id="totalSection" style="display: none;">
           <div class="total-section">
-            <div class="total-label">Total Amount:</div>
-            <div class="total-amount" id="totalAmount">Rp 0</div>
+            <div style="font-size: 14px; margin-bottom: 10px; opacity: 0.9;">
+              <div style="margin-bottom: 5px;">Subtotal: <span id="subtotalAmount">Rp 0</span></div>
+              <div style="margin-bottom: 5px;" id="discountDisplay" style="display: none;">Diskon: <span id="discountAmountDisplay">Rp 0</span></div>
+              <div style="margin-bottom: 5px;" id="shippingDisplay" style="display: none;">Ongkir: <span id="shippingAmountDisplay">Rp 0</span></div>
+            </div>
+            <div style="border-top: 2px solid rgba(255,255,255,0.3); padding-top: 10px;">
+              <div class="total-label">Total:</div>
+              <div class="total-amount" id="totalAmount">Rp 0</div>
+            </div>
           </div>
+        </div>
+      </div>
+      
+      <!-- Diskon dan Ongkir Fields -->
+      <div id="additionalFields" style="display: none;">
+        <div class="form-group">
+          <label for="discountInput">Diskon (Opsional)</label>
+          <input 
+            type="number" 
+            id="discountInput" 
+            name="discount" 
+            placeholder="0"
+            min="0"
+            step="1000"
+            disabled>
+          <div class="input-hint">Masukkan nilai diskon dalam Rupiah</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="shippingInput">Ongkos Kirim (Opsional)</label>
+          <input 
+            type="number" 
+            id="shippingInput" 
+            name="shipping" 
+            placeholder="0"
+            min="0"
+            step="1000"
+            disabled>
+          <div class="input-hint">Masukkan nilai ongkos kirim dalam Rupiah</div>
         </div>
       </div>
       
@@ -513,7 +549,7 @@
       </div>
       
       <div class="button-group" id="actionButtons" style="display: none;">
-        <button type="button" class="btn-secondary" onclick="location.reload()">Reset</button>
+        <button type="button" class="btn-secondary" onclick="resetForm()">Reset</button>
         <button type="submit" class="btn-primary" id="submitBtn">Generate Invoice</button>
       </div>
     </form>
@@ -617,11 +653,18 @@
           displayItems();
           showLoading(false);
           
-          // Show phone input and action buttons
+          // Show additional fields, phone input and action buttons
+          document.getElementById('additionalFields').style.display = 'block';
+          document.getElementById('discountInput').disabled = false;
+          document.getElementById('shippingInput').disabled = false;
           document.getElementById('phoneGroup').style.display = 'block';
           document.getElementById('phoneInput').disabled = false;
           document.getElementById('actionButtons').style.display = 'flex';
           updateStepIndicator(4);
+          
+          // Add event listeners for discount and shipping
+          document.getElementById('discountInput').addEventListener('input', calculateTotal);
+          document.getElementById('shippingInput').addEventListener('input', calculateTotal);
         })
         .withFailureHandler(function(error) {
           showAlert('Error loading items: ' + error.message, 'error');
@@ -689,21 +732,52 @@
     
     // Calculate and display total
     function calculateTotal() {
-      let total = 0;
+      let subtotal = 0;
       let hasSelectedItems = false;
       
       selectedItems.forEach(function(item) {
         if (item.selected) {
-          total += item.quantity * item.price;
+          subtotal += item.quantity * item.price;
           hasSelectedItems = true;
         }
       });
       
       const totalSection = document.getElementById('totalSection');
+      const subtotalAmount = document.getElementById('subtotalAmount');
       const totalAmount = document.getElementById('totalAmount');
       
       if (hasSelectedItems) {
-        totalAmount.textContent = formatCurrency(total);
+        // Get discount and shipping values
+        const discount = Number(document.getElementById('discountInput').value) || 0;
+        const shipping = Number(document.getElementById('shippingInput').value) || 0;
+        
+        // Calculate final total
+        const finalTotal = subtotal - discount + shipping;
+        
+        // Update displays
+        subtotalAmount.textContent = formatCurrency(subtotal);
+        totalAmount.textContent = formatCurrency(finalTotal);
+        
+        // Show/hide discount and shipping lines
+        const discountDisplay = document.getElementById('discountDisplay');
+        const shippingDisplay = document.getElementById('shippingDisplay');
+        const discountAmountDisplay = document.getElementById('discountAmountDisplay');
+        const shippingAmountDisplay = document.getElementById('shippingAmountDisplay');
+        
+        if (discount > 0) {
+          discountDisplay.style.display = 'block';
+          discountAmountDisplay.textContent = '- ' + formatCurrency(discount);
+        } else {
+          discountDisplay.style.display = 'none';
+        }
+        
+        if (shipping > 0) {
+          shippingDisplay.style.display = 'block';
+          shippingAmountDisplay.textContent = '+ ' + formatCurrency(shipping);
+        } else {
+          shippingDisplay.style.display = 'none';
+        }
+        
         totalSection.style.display = 'block';
       } else {
         totalSection.style.display = 'none';
@@ -750,11 +824,17 @@
         return;
       }
       
+      // Get discount and shipping values
+      const discount = Number(document.getElementById('discountInput').value) || 0;
+      const shipping = Number(document.getElementById('shippingInput').value) || 0;
+      
       // Prepare data
       const data = {
         sheetName: sheetName,
         customerName: customerName,
         phoneNumber: phoneNumber,
+        discount: discount,
+        shipping: shipping,
         selectedItems: selected.map(item => ({
           item: item.item,
           quantity: item.quantity,
@@ -779,10 +859,11 @@
           showLoading(false);
           submitBtn.disabled = false;
           
-          // Reset form after 3 seconds
+          // Reset form after 2 seconds without reload
           setTimeout(function() {
-            location.reload();
-          }, 3000);
+            resetForm();
+            showAlert('Form telah direset, siap untuk invoice berikutnya.', 'info');
+          }, 2000);
         })
         .withFailureHandler(function(error) {
           showAlert('Error: ' + error.message, 'error');
@@ -825,19 +906,38 @@
     }
     
     function resetForm() {
+      // Reset form sections visibility
       document.getElementById('customerGroup').style.display = 'none';
       document.getElementById('itemsSection').style.display = 'none';
+      document.getElementById('additionalFields').style.display = 'none';
       document.getElementById('phoneGroup').style.display = 'none';
       document.getElementById('actionButtons').style.display = 'none';
+      
+      // Reset form values
+      document.getElementById('sheetSelect').value = '';
       document.getElementById('customerSelect').value = '';
+      document.getElementById('customerSelect').innerHTML = '<option value="">-- Pilih Customer --</option>';
       document.getElementById('phoneInput').value = '';
+      document.getElementById('discountInput').value = '';
+      document.getElementById('shippingInput').value = '';
+      
+      // Disable inputs
+      document.getElementById('customerSelect').disabled = true;
+      document.getElementById('phoneInput').disabled = true;
+      document.getElementById('discountInput').disabled = true;
+      document.getElementById('shippingInput').disabled = true;
+      
+      // Reset items
       selectedItems = [];
       allItems = [];
+      
+      // Reset step indicator
       updateStepIndicator(1);
     }
     
     function hideItemsSection() {
       document.getElementById('itemsSection').style.display = 'none';
+      document.getElementById('additionalFields').style.display = 'none';
       document.getElementById('phoneGroup').style.display = 'none';
       document.getElementById('actionButtons').style.display = 'none';
     }

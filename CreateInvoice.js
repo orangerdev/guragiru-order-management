@@ -115,8 +115,8 @@ class CreateInvoice {
    * {
    *   sheetName: string,
    *   customerName: string,
-   *   phoneNumber: string,
-   *   selectedItems: [{item, quantity, price}, ...]
+   *   phoneNumber: string,   *   discount: number (optional),
+   *   shipping: number (optional),   *   selectedItems: [{item, quantity, price}, ...]
    * }
    * @returns {string} PDF/PNG URL
    */
@@ -184,18 +184,53 @@ class CreateInvoice {
 
       // Fill items starting from row 18
       let startRow = 18;
-      let total = 0;
+      let subtotal = 0;
 
       data.selectedItems.forEach((item, i) => {
         let row = startRow + i;
-        let subtotal = item.quantity * item.price;
-        total += subtotal;
+        let itemSubtotal = item.quantity * item.price;
+        subtotal += itemSubtotal;
 
         tempSheet.getRange(row, 2).setValue(item.item); // Column B: Item
         tempSheet.getRange(row, 5).setValue(item.quantity); // Column E: Qty
         tempSheet.getRange(row, 6).setValue(item.price); // Column F: Price
-        tempSheet.getRange(row, 7).setValue(subtotal); // Column G: Subtotal
+        tempSheet.getRange(row, 7).setValue(itemSubtotal); // Column G: Subtotal
       });
+      
+      // Get discount and shipping values (optional)
+      const discount = Number(data.discount) || 0;
+      const shipping = Number(data.shipping) || 0;
+      
+      // Calculate final total
+      const finalTotal = subtotal - discount + shipping;
+      
+      // Add discount and shipping to invoice (row 29 and 30 are typically after items)
+      let summaryRow = startRow + data.selectedItems.length + 1;
+      
+      // Add Subtotal label and value
+      tempSheet.getRange(summaryRow, 6).setValue('Subtotal:');
+      tempSheet.getRange(summaryRow, 7).setValue(subtotal);
+      summaryRow++;
+      
+      // Add Discount if exists
+      if (discount > 0) {
+        tempSheet.getRange(summaryRow, 6).setValue('Diskon:');
+        tempSheet.getRange(summaryRow, 7).setValue(-discount);
+        summaryRow++;
+      }
+      
+      // Add Shipping if exists
+      if (shipping > 0) {
+        tempSheet.getRange(summaryRow, 6).setValue('Ongkir:');
+        tempSheet.getRange(summaryRow, 7).setValue(shipping);
+        summaryRow++;
+      }
+      
+      // Add Total
+      tempSheet.getRange(summaryRow, 6).setValue('TOTAL:');
+      tempSheet.getRange(summaryRow, 7).setValue(finalTotal);
+      tempSheet.getRange(summaryRow, 6).setFontWeight('bold');
+      tempSheet.getRange(summaryRow, 7).setFontWeight('bold');
 
       SpreadsheetApp.flush();
 
@@ -274,7 +309,7 @@ class CreateInvoice {
         );
         const dokuResult = doku.generatePaymentUrl({
           invoiceNumber: invoiceId,
-          amount: total,
+          amount: finalTotal,
           customerName: data.customerName,
           customerPhone: normalizedPhone,
           items: data.selectedItems.map((item) => ({
@@ -299,7 +334,7 @@ class CreateInvoice {
           finalFileUrl,
           data.customerName,
           data.phoneNumber,
-          total,
+          finalTotal,
           invoiceId,
           finalMimeType,
           finalFileName,
