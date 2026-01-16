@@ -36,3 +36,29 @@ function testGetSheets() {
   Logger.log("Available sheets: " + JSON.stringify(sheets));
   return sheets;
 }
+
+/* ========== INPUT ORDER WRAPPER FUNCTIONS ========== */
+
+/**
+ * Gets all available sheets for input order (excludes system sheets)
+ * Wrapper for InputOrder.getSheets()
+ */
+function getSheets() {
+  return InputOrder.getSheets();
+}
+
+/**
+ * Gets names with their row ranges from a specific sheet
+ * Wrapper for InputOrder.getNames()
+ */
+function getNames(sheetName) {
+  return InputOrder.getNames(sheetName);
+}
+
+/**
+ * Submits a new order to the sheet
+ * Wrapper for InputOrder.submitOrder()
+ */
+function submitOrder(data) {
+  return InputOrder.submitOrder(data);
+}

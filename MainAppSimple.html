@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <base target="_top">
   <title>Order Management System</title>
   
@@ -34,13 +34,13 @@
     }
     
     .app-header h1 {
-      font-size: 32px;
+      font-size: clamp(20px, 5vw, 32px);
       margin-bottom: 0.5rem;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     
     .app-header p {
-      font-size: 16px;
+      font-size: clamp(12px, 3vw, 16px);
       opacity: 0.9;
     }
     
@@ -60,7 +60,7 @@
       border: none;
       background: rgba(255, 255, 255, 0.2);
       color: white;
-      font-size: 16px;
+      font-size: clamp(13px, 3vw, 16px);
       font-weight: 600;
       border-radius: 10px;
       cursor: pointer;
@@ -69,6 +69,7 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
+      -webkit-tap-highlight-color: transparent;
     }
     
     .tab-button:hover {
@@ -106,7 +107,7 @@
       color: #333;
       text-align: center;
       margin-bottom: 30px;
-      font-size: 24px;
+      font-size: clamp(18px, 4vw, 24px);
     }
     
     .form-group {
@@ -358,6 +359,89 @@
       box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
     }
     
+    /* Name selection */
+    .name-selection {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    
+    .name-selection select {
+      flex: 1;
+    }
+    
+    .btn-add-new {
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .btn-add-new:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+    
+    .name-input-container {
+      display: none;
+      margin-top: 10px;
+    }
+    
+    .name-input-container.show {
+      display: block;
+    }
+    
+    /* Checkbox styling */
+    .item-checkbox {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+    
+    .invoice-item {
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+    
+    .invoice-item:hover {
+      border-color: #667eea;
+      background: #f8f9ff;
+    }
+    
+    .invoice-item.selected {
+      border-color: #667eea;
+      background: #f0f3ff;
+    }
+    
+    .invoice-item-details {
+      flex: 1;
+    }
+    
+    .invoice-item-name {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    
+    .invoice-item-calc {
+      font-size: 13px;
+      color: #666;
+    }
+    
     /* Responsive */
     @media (max-width: 768px) {
       body {
@@ -365,12 +449,40 @@
       }
       
       .content-container {
-        padding: 1.5rem;
+        padding: 1rem;
       }
       
       .tab-navigation {
-        flex-direction: column;
+        flex-direction: row;
         gap: 8px;
+      }
+      
+      .tab-button {
+        padding: 12px 8px;
+        font-size: 12px;
+        gap: 4px;
+      }
+      
+      .tab-icon {
+        font-size: 16px;
+      }
+      
+      .items-table {
+        font-size: 12px;
+      }
+      
+      .items-table th,
+      .items-table td {
+        padding: 8px 4px;
+      }
+      
+      .btn-add-new {
+        padding: 12px 12px;
+        font-size: 13px;
+      }
+      
+      input, select {
+        font-size: 16px; /* Prevent zoom on iOS */
       }
     }
   </style>
@@ -412,16 +524,21 @@
           </div>
           
           <div class="form-group">
-            <label for="nameInput">Nama *</label>
-            <input 
-              type="text" 
-              id="nameInput" 
-              list="nameList" 
-              placeholder="Pilih atau ketik nama baru"
-              required
-              autocomplete="off">
-            <datalist id="nameList"></datalist>
-            <div class="input-hint">Pilih dari list atau ketik nama baru</div>
+            <label for="nameSelect">Nama *</label>
+            <div class="name-selection">
+              <select id="nameSelect" required>
+                <option value="">-- Pilih Nama --</option>
+              </select>
+              <button type="button" class="btn-add-new" id="addNewNameBtn">+ Baru</button>
+            </div>
+            <div class="name-input-container" id="nameInputContainer">
+              <input 
+                type="text" 
+                id="nameInput" 
+                placeholder="Ketik nama baru"
+                autocomplete="off">
+              <div class="input-hint">Ketik nama customer baru</div>
+            </div>
           </div>
           
           <div class="items-section">
@@ -556,22 +673,51 @@
       // Handle sheet change
       document.getElementById('sheetSelect').addEventListener('change', function() {
         const sheetName = this.value;
+        const nameSelect = document.getElementById('nameSelect');
+        const nameInputContainer = document.getElementById('nameInputContainer');
+        
+        // Reset nama
+        nameSelect.innerHTML = '<option value="">-- Pilih Nama --</option>';
+        nameInputContainer.classList.remove('show');
+        document.getElementById('nameInput').value = '';
+        
         if (sheetName) {
           google.script.run
             .withSuccessHandler(function(names) {
               namesData = names;
-              const nameList = document.getElementById('nameList');
-              nameList.innerHTML = '';
               names.forEach(n => {
                 const option = document.createElement('option');
                 option.value = n.name;
-                nameList.appendChild(option);
+                option.textContent = n.name;
+                nameSelect.appendChild(option);
               });
             })
             .withFailureHandler(function(error) {
               showAlert('order', 'Error: ' + error.message, 'error');
             })
             .getNames(sheetName);
+        }
+      });
+      
+      // Handle add new name button
+      document.getElementById('addNewNameBtn').addEventListener('click', function() {
+        const nameInputContainer = document.getElementById('nameInputContainer');
+        const nameSelect = document.getElementById('nameSelect');
+        
+        if (nameInputContainer.classList.contains('show')) {
+          // Kembali ke mode select
+          nameInputContainer.classList.remove('show');
+          nameSelect.required = true;
+          document.getElementById('nameInput').required = false;
+          this.textContent = '+ Baru';
+        } else {
+          // Tampilkan input baru
+          nameInputContainer.classList.add('show');
+          nameSelect.value = '';
+          nameSelect.required = false;
+          document.getElementById('nameInput').required = true;
+          document.getElementById('nameInput').focus();
+          this.textContent = '↩ Batal';
         }
       });
       
@@ -594,7 +740,16 @@
         e.preventDefault();
         
         const sheetName = document.getElementById('sheetSelect').value;
-        const name = document.getElementById('nameInput').value.trim();
+        const nameInputContainer = document.getElementById('nameInputContainer');
+        let name = '';
+        
+        // Ambil nama dari select atau input baru
+        if (nameInputContainer.classList.contains('show')) {
+          name = document.getElementById('nameInput').value.trim();
+        } else {
+          name = document.getElementById('nameSelect').value.trim();
+        }
+        
         const rows = document.querySelectorAll('.item-row');
         const items = [];
         
@@ -621,6 +776,11 @@
             if (result.success) {
               showAlert('order', result.message, 'success');
               document.getElementById('orderForm').reset();
+              // Reset tampilan nama
+              document.getElementById('nameInputContainer').classList.remove('show');
+              document.getElementById('nameSelect').required = true;
+              document.getElementById('nameInput').required = false;
+              document.getElementById('addNewNameBtn').textContent = '+ Baru';
             } else {
               showAlert('order', result.message, 'error');
             }
@@ -726,24 +886,88 @@
           return;
         }
         
-        let total = 0;
-        itemsList.innerHTML = items.map((item, i) => {
+        itemsList.innerHTML = `
+          <div style="margin-bottom: 10px; font-size: 13px; color: #666;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="selectAllItems" style="width: 18px; height: 18px;">
+              <span style="font-weight: 600;">Pilih Semua</span>
+            </label>
+          </div>
+        ` + items.map((item, i) => {
           const subtotal = item.quantity * item.price;
-          total += subtotal;
           return `
-            <div style="padding:10px;border-bottom:1px solid #eee;">
-              <div style="font-weight:600;">${item.item}</div>
-              <div style="font-size:13px;color:#666;">
-                ${item.quantity} x Rp ${item.price.toLocaleString('id-ID')} = 
-                <strong>Rp ${subtotal.toLocaleString('id-ID')}</strong>
+            <div class="invoice-item" data-index="${i}">
+              <input type="checkbox" class="item-checkbox" data-index="${i}" checked>
+              <div class="invoice-item-details">
+                <div class="invoice-item-name">${item.item}</div>
+                <div class="invoice-item-calc">
+                  ${item.quantity} x Rp ${item.price.toLocaleString('id-ID')} = 
+                  <strong>Rp ${subtotal.toLocaleString('id-ID')}</strong>
+                </div>
               </div>
             </div>
           `;
         }).join('');
         
-        document.getElementById('totalAmount').textContent = 'Rp ' + total.toLocaleString('id-ID');
+        // Add event listeners for checkboxes
+        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+          checkbox.addEventListener('change', function() {
+            const itemDiv = this.closest('.invoice-item');
+            if (this.checked) {
+              itemDiv.classList.add('selected');
+            } else {
+              itemDiv.classList.remove('selected');
+            }
+            updateTotal();
+            updateSelectAll();
+          });
+          // Set initial state
+          checkbox.closest('.invoice-item').classList.add('selected');
+        });
+        
+        // Select all checkbox
+        document.getElementById('selectAllItems').addEventListener('change', function() {
+          const checkboxes = document.querySelectorAll('.item-checkbox');
+          checkboxes.forEach(cb => {
+            cb.checked = this.checked;
+            const itemDiv = cb.closest('.invoice-item');
+            if (this.checked) {
+              itemDiv.classList.add('selected');
+            } else {
+              itemDiv.classList.remove('selected');
+            }
+          });
+          updateTotal();
+        });
+        
+        // Initial select all state
+        document.getElementById('selectAllItems').checked = true;
+        
+        updateTotal();
         itemsSection.style.display = 'block';
         totalSection.style.display = 'block';
+      }
+      
+      function updateSelectAll() {
+        const checkboxes = document.querySelectorAll('.item-checkbox');
+        const selectAll = document.getElementById('selectAllItems');
+        if (selectAll) {
+          const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+          selectAll.checked = allChecked;
+        }
+      }
+      
+      function updateTotal() {
+        const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+        let total = 0;
+        checkboxes.forEach(cb => {
+          const index = parseInt(cb.dataset.index);
+          const item = selectedItems[index];
+          if (item) {
+            total += item.quantity * item.price;
+          }
+        });
+        document.getElementById('totalAmount').textContent = 'Rp ' + total.toLocaleString('id-ID');
       }
       
       // Submit invoice
@@ -754,8 +978,23 @@
         const customerName = document.getElementById('customerSelect').value;
         const customerPhone = document.getElementById('phoneInput').value.trim();
         
-        if (!sheetName || !customerName || !customerPhone || selectedItems.length === 0) {
+        // Get only selected items
+        const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
+        const itemsToInvoice = [];
+        checkedBoxes.forEach(cb => {
+          const index = parseInt(cb.dataset.index);
+          if (selectedItems[index]) {
+            itemsToInvoice.push(selectedItems[index]);
+          }
+        });
+        
+        if (!sheetName || !customerName || !customerPhone) {
           showAlert('invoice', 'Mohon lengkapi semua field!', 'error');
+          return;
+        }
+        
+        if (itemsToInvoice.length === 0) {
+          showAlert('invoice', 'Pilih minimal 1 item untuk invoice!', 'error');
           return;
         }
         
@@ -773,7 +1012,7 @@
             showLoading('invoice', false);
             btn.disabled = false;
           })
-          .generateInvoiceFromSheet({ sheetName, customerName, items: selectedItems, customerPhone });
+          .generateInvoiceFromSheet({ sheetName, customerName, items: itemsToInvoice, customerPhone });
       });
       
       // Initialize
