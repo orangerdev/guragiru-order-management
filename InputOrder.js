@@ -4,22 +4,13 @@
  */
 class InputOrder {
   /**
-   * Serves the HTML form for order input
-   */
-  static doGet() {
-    return HtmlService.createHtmlOutputFromFile("Index")
-      .setTitle("Input Order")
-      .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  }
-
-  /**
    * Gets all available sheets except TEMPLATE and CONFIG
    * @returns {Array} Array of sheet names
    */
   static getSheets() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheets = ss.getSheets();
-    const excludedSheets = ["TEMPLATE", "CONFIG"];
+    const excludedSheets = ["TEMPLATE", "CONFIG", "ORDER", "LOG", "INVOICE"];
 
     return sheets
       .filter((sheet) => !excludedSheets.includes(sheet.getName()))
@@ -178,25 +169,23 @@ class InputOrder {
 }
 
 /**
- * Entry point for web app
- */
-function doGet() {
-  return InputOrder.doGet();
-}
-
-/**
  * Global wrapper functions for google.script.run
  * These are required because google.script.run cannot call static class methods
  */
 
 function getSheets() {
-  return InputOrder.getSheets();
+  Logger.log("getSheets() called");
+  const sheets = InputOrder.getSheets();
+  Logger.log("getSheets() returning: " + JSON.stringify(sheets));
+  return sheets;
 }
 
 function getNames(sheetName) {
+  Logger.log("getNames() called with sheetName: " + sheetName);
   return InputOrder.getNames(sheetName);
 }
 
 function submitOrder(data) {
+  Logger.log("submitOrder() called");
   return InputOrder.submitOrder(data);
 }

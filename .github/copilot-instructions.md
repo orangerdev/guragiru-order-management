@@ -12,6 +12,16 @@ The following sheets are **READ-ONLY** and must **NEVER** be modified by the scr
 
 **CRITICAL**: These sheets should only be modified manually by the sheet owner. Any code changes must ensure these sheets are only read from, never written to.
 
+### System Sheets
+The following sheets are for system use and should be **EXCLUDED** from user-facing dropdowns and selections:
+- `ORDER` - Stores generated invoice data
+- `LOG` - Contains system logs
+- `INVOICE` - Invoice template for document generation
+- `TEMPLATE` - Template structures (also protected)
+- `CONFIG` - Configuration settings (also protected)
+
+**When displaying available sheets to users** (e.g., for event selection), these sheets must be filtered out.
+
 ## Development Guidelines
 
 ### Google Apps Script Best Practices

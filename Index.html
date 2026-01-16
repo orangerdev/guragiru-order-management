@@ -481,16 +481,17 @@
     let namesData = [];
     let rowIdCounter = 1;
     
-    // Load sheets on page load
-    window.addEventListener('load', function() {
-      loadSheets();
-      setupItemHandlers();
-    });
+    // Simple initialization without IIFE - just call directly
+    loadSheets();
+    setupItemHandlers();
     
     // Setup item table handlers
     function setupItemHandlers() {
       // Add item button handler
-      document.getElementById('addItemBtn').addEventListener('click', addItemRow);
+      const addBtn = document.getElementById('addItemBtn');
+      if (addBtn) {
+        addBtn.addEventListener('click', addItemRow);
+      }
     }
     
     // Add new item row
@@ -551,9 +552,18 @@
     // Load available sheets
     function loadSheets() {
       showLoading(true);
+      console.log('Starting to load sheets...');
       google.script.run
         .withSuccessHandler(function(sheets) {
+          console.log('Sheets loaded successfully:', sheets);
           const sheetSelect = document.getElementById('sheetSelect');
+          
+          if (!sheets || sheets.length === 0) {
+            showAlert('Tidak ada sheet yang tersedia', 'error');
+            showLoading(false);
+            return;
+          }
+          
           sheets.forEach(function(sheet) {
             const option = document.createElement('option');
             option.value = sheet;
@@ -561,8 +571,10 @@
             sheetSelect.appendChild(option);
           });
           showLoading(false);
+          console.log('Dropdown populated with', sheets.length, 'sheets');
         })
         .withFailureHandler(function(error) {
+          console.error('Error loading sheets:', error);
           showAlert('Error loading sheets: ' + error.message, 'error');
           showLoading(false);
         })
