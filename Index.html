@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base target="_top">
   <title>Input Order</title>
   
   <style>
@@ -176,6 +176,109 @@
       color: #999;
       margin-top: 5px;
     }
+    
+    .items-section {
+      margin-bottom: 20px;
+    }
+    
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .items-table thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .items-table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .items-table tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.2s ease;
+    }
+    
+    .items-table tbody tr:hover {
+      background: #f9f9f9;
+    }
+    
+    .items-table td {
+      padding: 10px;
+    }
+    
+    .items-table input {
+      margin: 0;
+      padding: 8px 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    
+    .items-table .item-input {
+      width: 100%;
+      min-width: 150px;
+    }
+    
+    .items-table .qty-input {
+      width: 80px;
+    }
+    
+    .items-table .price-input {
+      width: 120px;
+    }
+    
+    .btn-delete {
+      background: #ff4757;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    
+    .btn-delete:hover {
+      background: #ee5a6f;
+      transform: scale(1.1);
+    }
+    
+    .btn-add-item {
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .btn-add-item:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -209,36 +312,49 @@
         <div class="input-hint">Pilih dari list atau ketik nama baru</div>
       </div>
       
-      <div class="form-group">
-        <label for="itemInput">Item *</label>
-        <input 
-          type="text" 
-          id="itemInput" 
-          name="item" 
-          placeholder="Masukkan nama item"
-          required>
-      </div>
-      
-      <div class="form-group">
-        <label for="quantityInput">Quantity *</label>
-        <input 
-          type="number" 
-          id="quantityInput" 
-          name="quantity" 
-          min="1" 
-          value="1"
-          required>
-      </div>
-      
-      <div class="form-group">
-        <label for="priceInput">Harga *</label>
-        <input 
-          type="number" 
-          id="priceInput" 
-          name="price" 
-          min="0" 
-          placeholder="Masukkan harga"
-          required>
+      <div class="items-section">
+        <label>Items *</label>
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Quantity</th>
+              <th>Price</th>
+              <th style="width: 50px;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTableBody">
+            <tr class="item-row" data-row-id="1">
+              <td>
+                <input 
+                  type="text" 
+                  class="item-input" 
+                  placeholder="Nama item"
+                  required>
+              </td>
+              <td>
+                <input 
+                  type="number" 
+                  class="qty-input" 
+                  min="1" 
+                  value="1"
+                  required>
+              </td>
+              <td>
+                <input 
+                  type="number" 
+                  class="price-input" 
+                  min="0" 
+                  placeholder="Harga"
+                  required>
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" class="btn-add-item" id="addItemBtn">
+          <span>➕</span> Add Item
+        </button>
       </div>
       
       <div class="button-group">
@@ -250,11 +366,74 @@
   
   <script>
     let namesData = [];
+    let rowIdCounter = 1;
     
     // Load sheets on page load
     window.addEventListener('load', function() {
       loadSheets();
+      setupItemHandlers();
     });
+    
+    // Setup item table handlers
+    function setupItemHandlers() {
+      // Add item button handler
+      document.getElementById('addItemBtn').addEventListener('click', addItemRow);
+    }
+    
+    // Add new item row
+    function addItemRow() {
+      rowIdCounter++;
+      const tbody = document.getElementById('itemsTableBody');
+      const newRow = document.createElement('tr');
+      newRow.className = 'item-row';
+      newRow.setAttribute('data-row-id', rowIdCounter);
+      
+      newRow.innerHTML = `
+        <td>
+          <input 
+            type="text" 
+            class="item-input" 
+            placeholder="Nama item"
+            required>
+        </td>
+        <td>
+          <input 
+            type="number" 
+            class="qty-input" 
+            min="1" 
+            value="1"
+            required>
+        </td>
+        <td>
+          <input 
+            type="number" 
+            class="price-input" 
+            min="0" 
+            placeholder="Harga"
+            required>
+        </td>
+        <td>
+          <button type="button" class="btn-delete" onclick="deleteItemRow(this)">
+            ✕
+          </button>
+        </td>
+      `;
+      
+      tbody.appendChild(newRow);
+    }
+    
+    // Delete item row
+    function deleteItemRow(btn) {
+      const row = btn.closest('tr');
+      const tbody = document.getElementById('itemsTableBody');
+      
+      // Don't delete if only one row left
+      if (tbody.children.length > 1) {
+        row.remove();
+      } else {
+        showAlert('Minimal harus ada 1 item!', 'error');
+      }
+    }
     
     // Load available sheets
     function loadSheets() {
@@ -327,12 +506,9 @@
     document.getElementById('orderForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Validate all fields
+      // Validate basic fields
       const sheetName = document.getElementById('sheetSelect').value;
       const name = document.getElementById('nameInput').value.trim();
-      const item = document.getElementById('itemInput').value.trim();
-      const quantity = parseInt(document.getElementById('quantityInput').value);
-      const price = parseInt(document.getElementById('priceInput').value);
       
       if (!sheetName) {
         showAlert('Mohon pilih sheet terlebih dahulu!', 'error');
@@ -344,18 +520,48 @@
         return;
       }
       
-      if (!item) {
-        showAlert('Mohon isi item!', 'error');
-        return;
+      // Collect and validate all items
+      const items = [];
+      const rows = document.querySelectorAll('.item-row');
+      
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const itemInput = row.querySelector('.item-input');
+        const qtyInput = row.querySelector('.qty-input');
+        const priceInput = row.querySelector('.price-input');
+        
+        const item = itemInput.value.trim();
+        const quantity = parseInt(qtyInput.value);
+        const price = parseInt(priceInput.value);
+        
+        // Validate each item
+        if (!item) {
+          showAlert('Item pada baris ' + (i + 1) + ' tidak boleh kosong!', 'error');
+          itemInput.focus();
+          return;
+        }
+        
+        if (isNaN(quantity) || quantity < 1) {
+          showAlert('Quantity pada baris ' + (i + 1) + ' harus minimal 1!', 'error');
+          qtyInput.focus();
+          return;
+        }
+        
+        if (isNaN(price) || price < 0) {
+          showAlert('Harga pada baris ' + (i + 1) + ' harus berupa angka valid!', 'error');
+          priceInput.focus();
+          return;
+        }
+        
+        items.push({
+          item: item,
+          quantity: quantity,
+          price: price
+        });
       }
       
-      if (isNaN(quantity) || quantity < 1) {
-        showAlert('Quantity harus minimal 1!', 'error');
-        return;
-      }
-      
-      if (isNaN(price) || price < 0) {
-        showAlert('Harga harus berupa angka valid!', 'error');
+      if (items.length === 0) {
+        showAlert('Mohon tambahkan minimal 1 item!', 'error');
         return;
       }
       
@@ -363,9 +569,7 @@
       const data = {
         sheetName: sheetName,
         name: name,
-        item: item,
-        quantity: quantity,
-        price: price
+        items: items
       };
       
       // Submit order
@@ -386,7 +590,9 @@
             const sheetValue = document.getElementById('sheetSelect').value;
             document.getElementById('orderForm').reset();
             document.getElementById('sheetSelect').value = sheetValue;
-            document.getElementById('quantityInput').value = 1;
+            
+            // Reset items table to single row
+            resetItemsTable();
             
             // Reload names to update ranges
             loadNames(sheetValue);
@@ -402,6 +608,40 @@
           submitBtn.disabled = false;
         })
         .submitOrder(data);
+    }
+    
+    // Reset items table to initial state
+    function resetItemsTable() {
+      const tbody = document.getElementById('itemsTableBody');
+      tbody.innerHTML = `
+        <tr class="item-row" data-row-id="1">
+          <td>
+            <input 
+              type="text" 
+              class="item-input" 
+              placeholder="Nama item"
+              required>
+          </td>
+          <td>
+            <input 
+              type="number" 
+              class="qty-input" 
+              min="1" 
+              value="1"
+              required>
+          </td>
+          <td>
+            <input 
+              type="number" 
+              class="price-input" 
+              min="0" 
+              placeholder="Harga"
+              required>
+          </td>
+          <td></td>
+        </tr>
+      `;
+      rowIdCounter = 1;
     }
     
     // Show alert message
@@ -424,7 +664,7 @@
     // Handle form reset
     document.getElementById('orderForm').addEventListener('reset', function() {
       setTimeout(function() {
-        document.getElementById('quantityInput').value = 1;
+        resetItemsTable();
         clearNameList();
       }, 0);
     });
