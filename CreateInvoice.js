@@ -126,11 +126,14 @@ class CreateInvoice {
         "generateInvoiceFromSheet called with data:",
         JSON.stringify(data)
       );
-      
+
       // Debug logging
       Logger.log("data.selectedItems:", data.selectedItems);
       Logger.log("data.selectedItems type:", typeof data.selectedItems);
-      Logger.log("data.selectedItems length:", data.selectedItems ? data.selectedItems.length : "undefined");
+      Logger.log(
+        "data.selectedItems length:",
+        data.selectedItems ? data.selectedItems.length : "undefined"
+      );
 
       if (!data.selectedItems || data.selectedItems.length === 0) {
         throw new Error("No items selected for invoice");
