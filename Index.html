@@ -20,15 +20,15 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 1rem;
     }
     
     .container {
       background: white;
       border-radius: 20px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 40px;
-      max-width: 500px;
+      padding: 1rem;
+      max-width: 100%;
       width: 100%;
     }
     
@@ -279,6 +279,119 @@
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
     }
+    
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      body {
+        padding: 0.5rem;
+      }
+      
+      .container {
+        padding: 1.5rem;
+        border-radius: 15px;
+      }
+      
+      h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+      }
+      
+      /* Convert table to card layout on mobile */
+      .items-table {
+        display: block;
+        overflow-x: auto;
+      }
+      
+      .items-table thead {
+        display: none;
+      }
+      
+      .items-table tbody {
+        display: block;
+      }
+      
+      .items-table tbody tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 10px;
+        background: white;
+        position: relative;
+      }
+      
+      .items-table tbody tr:hover {
+        background: white;
+        border-color: #667eea;
+      }
+      
+      .items-table td {
+        display: block;
+        padding: 8px 0;
+        border: none;
+        text-align: left;
+      }
+      
+      .items-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #667eea;
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+      
+      .items-table .item-input,
+      .items-table .qty-input,
+      .items-table .price-input {
+        width: 100%;
+        max-width: 100%;
+      }
+      
+      .items-table td:last-child {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 0;
+      }
+      
+      .items-table td:last-child::before {
+        display: none;
+      }
+      
+      .btn-delete {
+        width: 36px;
+        height: 36px;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
+      
+      .btn-add-item {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      h1 {
+        font-size: 20px;
+      }
+      
+      input, select {
+        font-size: 16px; /* Prevent zoom on iOS */
+      }
+    }
   </style>
 </head>
 <body>
@@ -325,14 +438,14 @@
           </thead>
           <tbody id="itemsTableBody">
             <tr class="item-row" data-row-id="1">
-              <td>
+              <td data-label="Item">
                 <input 
                   type="text" 
                   class="item-input" 
                   placeholder="Nama item"
                   required>
               </td>
-              <td>
+              <td data-label="Quantity">
                 <input 
                   type="number" 
                   class="qty-input" 
@@ -340,7 +453,7 @@
                   value="1"
                   required>
               </td>
-              <td>
+              <td data-label="Price">
                 <input 
                   type="number" 
                   class="price-input" 
@@ -389,14 +502,14 @@
       newRow.setAttribute('data-row-id', rowIdCounter);
       
       newRow.innerHTML = `
-        <td>
+        <td data-label="Item">
           <input 
             type="text" 
             class="item-input" 
             placeholder="Nama item"
             required>
         </td>
-        <td>
+        <td data-label="Quantity">
           <input 
             type="number" 
             class="qty-input" 
@@ -404,7 +517,7 @@
             value="1"
             required>
         </td>
-        <td>
+        <td data-label="Price">
           <input 
             type="number" 
             class="price-input" 
@@ -615,14 +728,14 @@
       const tbody = document.getElementById('itemsTableBody');
       tbody.innerHTML = `
         <tr class="item-row" data-row-id="1">
-          <td>
+          <td data-label="Item">
             <input 
               type="text" 
               class="item-input" 
               placeholder="Nama item"
               required>
           </td>
-          <td>
+          <td data-label="Quantity">
             <input 
               type="number" 
               class="qty-input" 
@@ -630,7 +743,7 @@
               value="1"
               required>
           </td>
-          <td>
+          <td data-label="Price">
             <input 
               type="number" 
               class="price-input" 
