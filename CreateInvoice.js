@@ -196,41 +196,49 @@ class CreateInvoice {
         tempSheet.getRange(row, 6).setValue(item.price); // Column F: Price
         tempSheet.getRange(row, 7).setValue(itemSubtotal); // Column G: Subtotal
       });
-      
+
       // Get discount and shipping values (optional)
       const discount = Number(data.discount) || 0;
       const shipping = Number(data.shipping) || 0;
-      
+
       // Calculate final total
       const finalTotal = subtotal - discount + shipping;
-      
-      // Add discount and shipping to invoice (row 29 and 30 are typically after items)
-      let summaryRow = startRow + data.selectedItems.length + 1;
-      
+
       // Add Subtotal label and value
-      tempSheet.getRange(summaryRow, 6).setValue('Subtotal:');
-      tempSheet.getRange(summaryRow, 7).setValue(subtotal);
-      summaryRow++;
-      
+      tempSheet.getRange(30, 7).setValue(subtotal);
+
       // Add Discount if exists
       if (discount > 0) {
-        tempSheet.getRange(summaryRow, 6).setValue('Diskon:');
-        tempSheet.getRange(summaryRow, 7).setValue(-discount);
-        summaryRow++;
+        orderSheet.appendRow([
+          currentDate, // A: Date
+          invoiceId, // B: Invoice ID
+          data.customerName, // C: Name
+          data.phoneNumber, // D: Phone
+          "Diskon", // E: Item
+          1, // F: Qty
+          discount, // G: Unit Price
+          -discount, // H: SubTotal
+        ]);
+        tempSheet.getRange(31, 7).setValue(-discount);
       }
-      
+
       // Add Shipping if exists
       if (shipping > 0) {
-        tempSheet.getRange(summaryRow, 6).setValue('Ongkir:');
-        tempSheet.getRange(summaryRow, 7).setValue(shipping);
-        summaryRow++;
+        orderSheet.appendRow([
+          currentDate, // A: Date
+          invoiceId, // B: Invoice ID
+          data.customerName, // C: Name
+          data.phoneNumber, // D: Phone
+          "Ongkir", // E: Item
+          1, // F: Qty
+          shipping, // G: Unit Price
+          shipping, // H: SubTotal
+        ]);
+        tempSheet.getRange(29, 7).setValue(shipping);
       }
-      
+
       // Add Total
-      tempSheet.getRange(summaryRow, 6).setValue('TOTAL:');
-      tempSheet.getRange(summaryRow, 7).setValue(finalTotal);
-      tempSheet.getRange(summaryRow, 6).setFontWeight('bold');
-      tempSheet.getRange(summaryRow, 7).setFontWeight('bold');
+      tempSheet.getRange(32, 7).setValue(finalTotal);
 
       SpreadsheetApp.flush();
 
@@ -297,6 +305,23 @@ class CreateInvoice {
 
       // Generate DOKU payment URL
       let paymentUrl = "";
+
+      // add shipping and discount to items array
+      if (discount > 0) {
+        data.selectedItems.push({
+          item: "Diskon",
+          quantity: 1,
+          price: -discount,
+        });
+      }
+      if (shipping > 0) {
+        data.selectedItems.push({
+          item: "Ongkir",
+          quantity: 1,
+          price: shipping,
+        });
+      }
+
       try {
         const doku = new DokuPayment(
           CONFIG_DOKU_CLIENT_ID,

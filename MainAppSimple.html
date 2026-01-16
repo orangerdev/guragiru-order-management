@@ -614,12 +614,45 @@
             <div class="input-hint">Format: 08xxx (tanpa +62)</div>
           </div>
           
+          <div id="additionalFields" style="display:none;">
+            <div class="form-group">
+              <label for="discountInput">Diskon (Opsional)</label>
+              <input 
+                type="number" 
+                id="discountInput" 
+                placeholder="0"
+                min="0"
+                step="1000"
+                disabled>
+              <div class="input-hint">Masukkan nilai diskon dalam Rupiah</div>
+            </div>
+            
+            <div class="form-group">
+              <label for="shippingInput">Ongkos Kirim (Opsional)</label>
+              <input 
+                type="number" 
+                id="shippingInput" 
+                placeholder="0"
+                min="0"
+                step="1000"
+                disabled>
+              <div class="input-hint">Masukkan nilai ongkos kirim dalam Rupiah</div>
+            </div>
+          </div>
+          
           <div id="itemsSection" style="display:none; margin-top: 20px;">
             <label>Items</label>
             <div id="itemsList"></div>
             <div id="totalSection" class="total-section" style="display:none;">
-              <div class="total-label">Total</div>
-              <div class="total-amount" id="totalAmount">Rp 0</div>
+              <div style="font-size: 14px; margin-bottom: 10px;">
+                <div style="margin-bottom: 5px;">Subtotal: <span id="subtotalAmount">Rp 0</span></div>
+                <div style="margin-bottom: 5px; display: none;" id="discountDisplay">Diskon: <span id="discountAmountDisplay">Rp 0</span></div>
+                <div style="margin-bottom: 5px; display: none;" id="shippingDisplay">Ongkir: <span id="shippingAmountDisplay">Rp 0</span></div>
+              </div>
+              <div style="border-top: 2px solid rgba(255,255,255,0.3); padding-top: 10px;">
+                <div class="total-label">Total:</div>
+                <div class="total-amount" id="totalAmount">Rp 0</div>
+              </div>
             </div>
           </div>
           
@@ -863,8 +896,15 @@
               displayItems(items);
               document.getElementById('phoneGroup').style.display = 'block';
               document.getElementById('phoneInput').disabled = false;
+              document.getElementById('additionalFields').style.display = 'block';
+              document.getElementById('discountInput').disabled = false;
+              document.getElementById('shippingInput').disabled = false;
               document.getElementById('actionButtons').style.display = 'flex';
               showLoading('invoice', false);
+              
+              // Add event listeners for discount and shipping
+              document.getElementById('discountInput').addEventListener('input', updateTotal);
+              document.getElementById('shippingInput').addEventListener('input', updateTotal);
             })
             .withFailureHandler(function(error) {
               showAlert('invoice', 'Error: ' + error.message, 'error');
@@ -959,15 +999,45 @@
       
       function updateTotal() {
         const checkboxes = document.querySelectorAll('.item-checkbox:checked');
-        let total = 0;
+        let subtotal = 0;
         checkboxes.forEach(cb => {
           const index = parseInt(cb.dataset.index);
           const item = selectedItems[index];
           if (item) {
-            total += item.quantity * item.price;
+            subtotal += item.quantity * item.price;
           }
         });
-        document.getElementById('totalAmount').textContent = 'Rp ' + total.toLocaleString('id-ID');
+        
+        // Get discount and shipping values
+        const discount = Number(document.getElementById('discountInput').value) || 0;
+        const shipping = Number(document.getElementById('shippingInput').value) || 0;
+        
+        // Calculate final total
+        const finalTotal = subtotal - discount + shipping;
+        
+        // Update displays
+        document.getElementById('subtotalAmount').textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+        document.getElementById('totalAmount').textContent = 'Rp ' + finalTotal.toLocaleString('id-ID');
+        
+        // Show/hide discount and shipping lines
+        const discountDisplay = document.getElementById('discountDisplay');
+        const shippingDisplay = document.getElementById('shippingDisplay');
+        const discountAmountDisplay = document.getElementById('discountAmountDisplay');
+        const shippingAmountDisplay = document.getElementById('shippingAmountDisplay');
+        
+        if (discount > 0) {
+          discountDisplay.style.display = 'block';
+          discountAmountDisplay.textContent = '- Rp ' + discount.toLocaleString('id-ID');
+        } else {
+          discountDisplay.style.display = 'none';
+        }
+        
+        if (shipping > 0) {
+          shippingDisplay.style.display = 'block';
+          shippingAmountDisplay.textContent = '+ Rp ' + shipping.toLocaleString('id-ID');
+        } else {
+          shippingDisplay.style.display = 'none';
+        }
       }
       
       // Submit invoice
@@ -977,6 +1047,8 @@
         const sheetName = document.getElementById('eventSelect').value;
         const customerName = document.getElementById('customerSelect').value;
         const customerPhone = document.getElementById('phoneInput').value.trim();
+        const discount = Number(document.getElementById('discountInput').value) || 0;
+        const shipping = Number(document.getElementById('shippingInput').value) || 0;
         
         // Get only selected items
         const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
@@ -1004,8 +1076,15 @@
         
         google.script.run
           .withSuccessHandler(function(fileUrl) {
-            showAlert('invoice', 'Invoice berhasil dibuat!', 'success');
-            setTimeout(() => location.reload(), 2000);
+            showAlert('invoice', '✅ Invoice berhasil dibuat! File telah dikirim ke customer.', 'success');
+            showLoading('invoice', false);
+            btn.disabled = false;
+            
+            // Reset form after 2 seconds without reload
+            setTimeout(function() {
+              resetInvoiceForm();
+              showAlert('invoice', 'Form telah direset, siap untuk invoice berikutnya.', 'info');
+            }, 2000);
           })
           .withFailureHandler(function(error) {
             showAlert('invoice', 'Error: ' + error.message, 'error');
@@ -1016,9 +1095,34 @@
             sheetName: sheetName, 
             customerName: customerName, 
             selectedItems: itemsToInvoice, 
-            phoneNumber: customerPhone 
+            phoneNumber: customerPhone,
+            discount: discount,
+            shipping: shipping
           });
       });
+      
+      function resetInvoiceForm() {
+        // Reset form sections visibility
+        document.getElementById('customerGroup').style.display = 'none';
+        document.getElementById('phoneGroup').style.display = 'none';
+        document.getElementById('additionalFields').style.display = 'none';
+        document.getElementById('itemsSection').style.display = 'none';
+        document.getElementById('actionButtons').style.display = 'none';
+        
+        // Reset form values
+        document.getElementById('eventSelect').value = '';
+        document.getElementById('customerSelect').innerHTML = '<option value="">-- Pilih Customer --</option>';
+        document.getElementById('customerSelect').disabled = true;
+        document.getElementById('phoneInput').value = '';
+        document.getElementById('phoneInput').disabled = true;
+        document.getElementById('discountInput').value = '';
+        document.getElementById('discountInput').disabled = true;
+        document.getElementById('shippingInput').value = '';
+        document.getElementById('shippingInput').disabled = true;
+        
+        // Reset items
+        selectedItems = [];
+      }
       
       // Initialize
       loadEvents();
