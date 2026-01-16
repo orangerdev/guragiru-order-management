@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Input Order</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    input, select, datalist {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      padding-right: 40px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-submit {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-submit:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn-reset {
+      background: #f5f5f5;
+      color: #666;
+    }
+    
+    .btn-reset:hover {
+      background: #e0e0e0;
+    }
+    
+    .alert {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+    
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+    }
+    
+    .loading {
+      text-align: center;
+      color: #667eea;
+      font-weight: 600;
+      padding: 10px;
+      display: none;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(102, 126, 234, 0.3);
+      border-radius: 50%;
+      border-top-color: #667eea;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .input-hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📝 Input Order</h1>
+    
+    <div id="alert" class="alert"></div>
+    <div id="loading" class="loading">
+      <span class="spinner"></span> Loading...
+    </div>
+    
+    <form id="orderForm">
+      <div class="form-group">
+        <label for="sheetSelect">Pilih Sheet *</label>
+        <select id="sheetSelect" name="sheetName" required>
+          <option value="">-- Pilih Sheet --</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="nameInput">Nama *</label>
+        <input 
+          type="text" 
+          id="nameInput" 
+          name="name" 
+          list="nameList" 
+          placeholder="Pilih atau ketik nama baru"
+          required
+          autocomplete="off">
+        <datalist id="nameList"></datalist>
+        <div class="input-hint">Pilih dari list atau ketik nama baru</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="itemInput">Item *</label>
+        <input 
+          type="text" 
+          id="itemInput" 
+          name="item" 
+          placeholder="Masukkan nama item"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label for="quantityInput">Quantity *</label>
+        <input 
+          type="number" 
+          id="quantityInput" 
+          name="quantity" 
+          min="1" 
+          value="1"
+          required>
+      </div>
+      
+      <div class="form-group">
+        <label for="priceInput">Harga *</label>
+        <input 
+          type="number" 
+          id="priceInput" 
+          name="price" 
+          min="0" 
+          placeholder="Masukkan harga"
+          required>
+      </div>
+      
+      <div class="button-group">
+        <button type="reset" class="btn-reset">Reset</button>
+        <button type="submit" class="btn-submit">Submit</button>
+      </div>
+    </form>
+  </div>
+  
+  <script>
+    let namesData = [];
+    
+    // Load sheets on page load
+    window.addEventListener('load', function() {
+      loadSheets();
+    });
+    
+    // Load available sheets
+    function loadSheets() {
+      showLoading(true);
+      google.script.run
+        .withSuccessHandler(function(sheets) {
+          const sheetSelect = document.getElementById('sheetSelect');
+          sheets.forEach(function(sheet) {
+            const option = document.createElement('option');
+            option.value = sheet;
+            option.textContent = sheet;
+            sheetSelect.appendChild(option);
+          });
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error loading sheets: ' + error.message, 'error');
+          showLoading(false);
+        })
+        .getSheets();
+    }
+    
+    // Handle sheet selection change
+    document.getElementById('sheetSelect').addEventListener('change', function() {
+      const sheetName = this.value;
+      if (sheetName) {
+        loadNames(sheetName);
+      } else {
+        clearNameList();
+      }
+    });
+    
+    // Load names from selected sheet
+    function loadNames(sheetName) {
+      showLoading(true);
+      google.script.run
+        .withSuccessHandler(function(names) {
+          namesData = names;
+          populateNameList(names);
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error loading names: ' + error.message, 'error');
+          showLoading(false);
+        })
+        .getNames(sheetName);
+    }
+    
+    // Populate name datalist
+    function populateNameList(names) {
+      const nameList = document.getElementById('nameList');
+      nameList.innerHTML = '';
+      
+      names.forEach(function(nameObj) {
+        const option = document.createElement('option');
+        option.value = nameObj.name;
+        option.textContent = nameObj.name + ' (' + nameObj.startRow + ':' + nameObj.endRow + ')';
+        nameList.appendChild(option);
+      });
+    }
+    
+    // Clear name list
+    function clearNameList() {
+      document.getElementById('nameList').innerHTML = '';
+      document.getElementById('nameInput').value = '';
+      namesData = [];
+    }
+    
+    // Handle form submission
+    document.getElementById('orderForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Validate all fields
+      const sheetName = document.getElementById('sheetSelect').value;
+      const name = document.getElementById('nameInput').value.trim();
+      const item = document.getElementById('itemInput').value.trim();
+      const quantity = parseInt(document.getElementById('quantityInput').value);
+      const price = parseInt(document.getElementById('priceInput').value);
+      
+      if (!sheetName) {
+        showAlert('Mohon pilih sheet terlebih dahulu!', 'error');
+        return;
+      }
+      
+      if (!name) {
+        showAlert('Mohon isi nama!', 'error');
+        return;
+      }
+      
+      if (!item) {
+        showAlert('Mohon isi item!', 'error');
+        return;
+      }
+      
+      if (isNaN(quantity) || quantity < 1) {
+        showAlert('Quantity harus minimal 1!', 'error');
+        return;
+      }
+      
+      if (isNaN(price) || price < 0) {
+        showAlert('Harga harus berupa angka valid!', 'error');
+        return;
+      }
+      
+      // Prepare data
+      const data = {
+        sheetName: sheetName,
+        name: name,
+        item: item,
+        quantity: quantity,
+        price: price
+      };
+      
+      // Submit order
+      submitOrder(data);
+    });
+    
+    // Submit order to backend
+    function submitOrder(data) {
+      showLoading(true);
+      const submitBtn = document.querySelector('.btn-submit');
+      submitBtn.disabled = true;
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showAlert(result.message, 'success');
+            // Reset form but keep sheet selection
+            const sheetValue = document.getElementById('sheetSelect').value;
+            document.getElementById('orderForm').reset();
+            document.getElementById('sheetSelect').value = sheetValue;
+            document.getElementById('quantityInput').value = 1;
+            
+            // Reload names to update ranges
+            loadNames(sheetValue);
+          } else {
+            showAlert(result.message, 'error');
+          }
+          showLoading(false);
+          submitBtn.disabled = false;
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error submitting order: ' + error.message, 'error');
+          showLoading(false);
+          submitBtn.disabled = false;
+        })
+        .submitOrder(data);
+    }
+    
+    // Show alert message
+    function showAlert(message, type) {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.className = 'alert alert-' + type;
+      alert.style.display = 'block';
+      
+      setTimeout(function() {
+        alert.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Show/hide loading indicator
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+    
+    // Handle form reset
+    document.getElementById('orderForm').addEventListener('reset', function() {
+      setTimeout(function() {
+        document.getElementById('quantityInput').value = 1;
+        clearNameList();
+      }, 0);
+    });
+  </script>
+</body>
+</html>
