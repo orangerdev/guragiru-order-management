@@ -1012,7 +1012,12 @@
             showLoading('invoice', false);
             btn.disabled = false;
           })
-          .generateInvoiceFromSheet({ sheetName, customerName, items: itemsToInvoice, customerPhone });
+          .generateInvoiceFromSheet({ 
+            sheetName: sheetName, 
+            customerName: customerName, 
+            selectedItems: itemsToInvoice, 
+            phoneNumber: customerPhone 
+          });
       });
       
       // Initialize

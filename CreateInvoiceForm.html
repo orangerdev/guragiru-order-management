@@ -729,7 +729,10 @@
         return;
       }
       
+      // Debug logging
+      console.log('selectedItems before filter:', JSON.stringify(selectedItems));
       const selected = selectedItems.filter(item => item.selected);
+      console.log('selected after filter:', JSON.stringify(selected));
       
       if (selected.length === 0) {
         showAlert('Mohon pilih minimal 1 item!', 'error');
