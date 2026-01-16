@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base target="_top">
+  <title>Create Invoice</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 2rem;
+      max-width: 900px;
+      width: 100%;
+    }
+    
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      padding-right: 40px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    
+    button {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      flex: 1;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #666;
+    }
+    
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+    
+    .alert {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+    
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+    }
+    
+    .alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 2px solid #bee5eb;
+    }
+    
+    .loading {
+      text-align: center;
+      color: #667eea;
+      font-weight: 600;
+      padding: 10px;
+      display: none;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(102, 126, 234, 0.3);
+      border-radius: 50%;
+      border-top-color: #667eea;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .input-hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+    
+    /* Items Section */
+    .items-section {
+      margin: 25px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 12px;
+    }
+    
+    .items-section h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+    
+    .items-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .item-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: all 0.2s ease;
+    }
+    
+    .item-card:hover {
+      border-color: #667eea;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    }
+    
+    .item-card.disabled {
+      opacity: 0.5;
+      background: #f5f5f5;
+    }
+    
+    .item-checkbox {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+    }
+    
+    .item-details {
+      flex: 1;
+    }
+    
+    .item-name {
+      font-weight: 600;
+      color: #333;
+      font-size: 15px;
+      margin-bottom: 5px;
+    }
+    
+    .item-info {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: #666;
+    }
+    
+    .item-info span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .item-subtotal {
+      flex-shrink: 0;
+      font-weight: 700;
+      color: #667eea;
+      font-size: 16px;
+      text-align: right;
+      min-width: 120px;
+    }
+    
+    .total-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: right;
+    }
+    
+    .total-section .total-label {
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+    
+    .total-section .total-amount {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    
+    /* Step Indicator */
+    .step-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      padding: 0 10px;
+    }
+    
+    .step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+    
+    .step::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: #e0e0e0;
+      z-index: -1;
+    }
+    
+    .step:first-child::before {
+      display: none;
+    }
+    
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      color: #999;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .step.active .step-number {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .step.completed .step-number {
+      background: #28a745;
+      color: white;
+    }
+    
+    .step-label {
+      font-size: 11px;
+      color: #999;
+      font-weight: 500;
+    }
+    
+    .step.active .step-label {
+      color: #667eea;
+      font-weight: 600;
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      body {
+        padding: 0.5rem;
+      }
+      
+      .container {
+        padding: 1.5rem;
+        border-radius: 15px;
+      }
+      
+      h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+      }
+      
+      .step-indicator {
+        padding: 0;
+      }
+      
+      .step-label {
+        font-size: 10px;
+      }
+      
+      .step-number {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+      }
+      
+      .items-section {
+        padding: 15px;
+      }
+      
+      .item-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .item-subtotal {
+        align-self: flex-end;
+        min-width: auto;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      button {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      h1 {
+        font-size: 20px;
+      }
+      
+      input, select {
+        font-size: 16px; /* Prevent zoom on iOS */
+      }
+      
+      .total-section .total-amount {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧾 Create Invoice</h1>
+    
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step active" id="step1">
+        <div class="step-number">1</div>
+        <div class="step-label">Pilih Event</div>
+      </div>
+      <div class="step" id="step2">
+        <div class="step-number">2</div>
+        <div class="step-label">Pilih Customer</div>
+      </div>
+      <div class="step" id="step3">
+        <div class="step-number">3</div>
+        <div class="step-label">Pilih Items</div>
+      </div>
+      <div class="step" id="step4">
+        <div class="step-number">4</div>
+        <div class="step-label">Input Phone</div>
+      </div>
+    </div>
+    
+    <div id="alert" class="alert"></div>
+    <div id="loading" class="loading">
+      <span class="spinner"></span> Loading...
+    </div>
+    
+    <form id="invoiceForm">
+      <!-- Step 1: Select Sheet/Event -->
+      <div class="form-group">
+        <label for="sheetSelect">Pilih Event *</label>
+        <select id="sheetSelect" name="sheetName" required>
+          <option value="">-- Pilih Event --</option>
+        </select>
+        <div class="input-hint">Pilih event untuk membuat invoice</div>
+      </div>
+      
+      <!-- Step 2: Select Customer -->
+      <div class="form-group" id="customerGroup" style="display: none;">
+        <label for="customerSelect">Pilih Customer *</label>
+        <select id="customerSelect" name="customerName" required disabled>
+          <option value="">-- Pilih Customer --</option>
+        </select>
+        <div class="input-hint">Pilih customer yang akan dibuatkan invoice</div>
+      </div>
+      
+      <!-- Step 3: Select Items with Checkboxes -->
+      <div id="itemsSection" class="items-section" style="display: none;">
+        <h3>📦 Items</h3>
+        <div id="itemsList" class="items-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div>Pilih customer untuk melihat items</div>
+          </div>
+        </div>
+        <div id="totalSection" style="display: none;">
+          <div class="total-section">
+            <div class="total-label">Total Amount:</div>
+            <div class="total-amount" id="totalAmount">Rp 0</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Step 4: Input Phone Number -->
+      <div class="form-group" id="phoneGroup" style="display: none;">
+        <label for="phoneInput">Nomor Telepon *</label>
+        <input 
+          type="tel" 
+          id="phoneInput" 
+          name="phoneNumber" 
+          placeholder="08123456789"
+          required
+          disabled>
+        <div class="input-hint">Format: 08xxxxxxxxxx atau 628xxxxxxxxxx</div>
+      </div>
+      
+      <div class="button-group" id="actionButtons" style="display: none;">
+        <button type="button" class="btn-secondary" onclick="location.reload()">Reset</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Generate Invoice</button>
+      </div>
+    </form>
+  </div>
+  
+  <script>
+    let selectedItems = [];
+    let allItems = [];
+    
+    // Simple initialization - just call directly
+    loadSheets();
+    
+    // Load available sheets/events
+    function loadSheets() {
+      showLoading(true);
+      console.log('Loading sheets for Create Invoice...');
+      google.script.run
+        .withSuccessHandler(function(sheets) {
+          console.log('Sheets loaded for Create Invoice:', sheets);
+          const sheetSelect = document.getElementById('sheetSelect');
+          sheets.forEach(function(sheet) {
+            const option = document.createElement('option');
+            option.value = sheet;
+            option.textContent = sheet;
+            sheetSelect.appendChild(option);
+          });
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error loading events: ' + error.message, 'error');
+          showLoading(false);
+        })
+        .getAvailableSheets();
+    }
+    
+    // Handle sheet/event selection change
+    document.getElementById('sheetSelect').addEventListener('change', function() {
+      const sheetName = this.value;
+      updateStepIndicator(1);
+      
+      if (sheetName) {
+        loadCustomers(sheetName);
+        document.getElementById('customerGroup').style.display = 'block';
+        updateStepIndicator(2);
+      } else {
+        resetForm();
+      }
+    });
+    
+    // Load customers from selected sheet
+    function loadCustomers(sheetName) {
+      showLoading(true);
+      const customerSelect = document.getElementById('customerSelect');
+      customerSelect.innerHTML = '<option value="">-- Pilih Customer --</option>';
+      customerSelect.disabled = true;
+      
+      google.script.run
+        .withSuccessHandler(function(customers) {
+          customers.forEach(function(customer) {
+            const option = document.createElement('option');
+            option.value = customer;
+            option.textContent = customer;
+            customerSelect.appendChild(option);
+          });
+          customerSelect.disabled = false;
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error loading customers: ' + error.message, 'error');
+          showLoading(false);
+        })
+        .getCustomersFromSheet(sheetName);
+    }
+    
+    // Handle customer selection change
+    document.getElementById('customerSelect').addEventListener('change', function() {
+      const sheetName = document.getElementById('sheetSelect').value;
+      const customerName = this.value;
+      
+      if (customerName) {
+        loadCustomerItems(sheetName, customerName);
+        updateStepIndicator(3);
+      } else {
+        hideItemsSection();
+      }
+    });
+    
+    // Load items for selected customer
+    function loadCustomerItems(sheetName, customerName) {
+      showLoading(true);
+      
+      google.script.run
+        .withSuccessHandler(function(items) {
+          allItems = items;
+          selectedItems = items.map((item, index) => ({
+            ...item,
+            id: index,
+            selected: true
+          }));
+          
+          displayItems();
+          showLoading(false);
+          
+          // Show phone input and action buttons
+          document.getElementById('phoneGroup').style.display = 'block';
+          document.getElementById('phoneInput').disabled = false;
+          document.getElementById('actionButtons').style.display = 'flex';
+          updateStepIndicator(4);
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error loading items: ' + error.message, 'error');
+          showLoading(false);
+        })
+        .getCustomerItems(sheetName, customerName);
+    }
+    
+    // Display items with checkboxes
+    function displayItems() {
+      const itemsSection = document.getElementById('itemsSection');
+      const itemsList = document.getElementById('itemsList');
+      
+      if (selectedItems.length === 0) {
+        itemsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📭</div>
+            <div>Tidak ada items untuk customer ini</div>
+          </div>
+        `;
+        itemsSection.style.display = 'block';
+        document.getElementById('totalSection').style.display = 'none';
+        return;
+      }
+      
+      itemsList.innerHTML = '';
+      
+      selectedItems.forEach(function(item) {
+        const subtotal = item.quantity * item.price;
+        
+        const itemCard = document.createElement('div');
+        itemCard.className = 'item-card' + (item.selected ? '' : ' disabled');
+        itemCard.innerHTML = `
+          <input 
+            type="checkbox" 
+            class="item-checkbox" 
+            id="item-${item.id}"
+            ${item.selected ? 'checked' : ''}
+            onchange="toggleItem(${item.id})">
+          <div class="item-details">
+            <div class="item-name">${escapeHtml(item.item)}</div>
+            <div class="item-info">
+              <span>📦 Qty: <strong>${item.quantity}</strong></span>
+              <span>💰 @${formatCurrency(item.price)}</span>
+            </div>
+          </div>
+          <div class="item-subtotal">${formatCurrency(subtotal)}</div>
+        `;
+        
+        itemsList.appendChild(itemCard);
+      });
+      
+      itemsSection.style.display = 'block';
+      calculateTotal();
+    }
+    
+    // Toggle item selection
+    function toggleItem(itemId) {
+      const item = selectedItems.find(i => i.id === itemId);
+      if (item) {
+        item.selected = !item.selected;
+        displayItems();
+      }
+    }
+    
+    // Calculate and display total
+    function calculateTotal() {
+      let total = 0;
+      let hasSelectedItems = false;
+      
+      selectedItems.forEach(function(item) {
+        if (item.selected) {
+          total += item.quantity * item.price;
+          hasSelectedItems = true;
+        }
+      });
+      
+      const totalSection = document.getElementById('totalSection');
+      const totalAmount = document.getElementById('totalAmount');
+      
+      if (hasSelectedItems) {
+        totalAmount.textContent = formatCurrency(total);
+        totalSection.style.display = 'block';
+      } else {
+        totalSection.style.display = 'none';
+      }
+    }
+    
+    // Handle form submission
+    document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const sheetName = document.getElementById('sheetSelect').value;
+      const customerName = document.getElementById('customerSelect').value;
+      const phoneNumber = document.getElementById('phoneInput').value.trim();
+      
+      // Validation
+      if (!sheetName) {
+        showAlert('Mohon pilih event terlebih dahulu!', 'error');
+        return;
+      }
+      
+      if (!customerName) {
+        showAlert('Mohon pilih customer terlebih dahulu!', 'error');
+        return;
+      }
+      
+      const selected = selectedItems.filter(item => item.selected);
+      
+      if (selected.length === 0) {
+        showAlert('Mohon pilih minimal 1 item!', 'error');
+        return;
+      }
+      
+      if (!phoneNumber) {
+        showAlert('Mohon isi nomor telepon!', 'error');
+        return;
+      }
+      
+      // Validate phone number format
+      if (!validatePhoneNumber(phoneNumber)) {
+        showAlert('Format nomor telepon tidak valid! Gunakan format: 08xxx atau 628xxx', 'error');
+        return;
+      }
+      
+      // Prepare data
+      const data = {
+        sheetName: sheetName,
+        customerName: customerName,
+        phoneNumber: phoneNumber,
+        selectedItems: selected.map(item => ({
+          item: item.item,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      };
+      
+      generateInvoice(data);
+    });
+    
+    // Generate invoice
+    function generateInvoice(data) {
+      showLoading(true);
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      
+      showAlert('Sedang membuat invoice, mohon tunggu...', 'info');
+      
+      google.script.run
+        .withSuccessHandler(function(fileUrl) {
+          showAlert('✅ Invoice berhasil dibuat! File telah dikirim ke customer.', 'success');
+          showLoading(false);
+          submitBtn.disabled = false;
+          
+          // Reset form after 3 seconds
+          setTimeout(function() {
+            location.reload();
+          }, 3000);
+        })
+        .withFailureHandler(function(error) {
+          showAlert('Error: ' + error.message, 'error');
+          showLoading(false);
+          submitBtn.disabled = false;
+        })
+        .generateInvoiceFromSheet(data);
+    }
+    
+    // Utility Functions
+    function formatCurrency(number) {
+      number = Number(number) || 0;
+      const parts = number.toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      return 'Rp ' + parts;
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    function validatePhoneNumber(phone) {
+      // Allow formats: 08xxx, +628xxx, 628xxx
+      const pattern = /^(\+?62|0)8\d{8,11}$/;
+      return pattern.test(phone.replace(/[\s-]/g, ''));
+    }
+    
+    function updateStepIndicator(currentStep) {
+      for (let i = 1; i <= 4; i++) {
+        const step = document.getElementById('step' + i);
+        step.classList.remove('active', 'completed');
+        
+        if (i < currentStep) {
+          step.classList.add('completed');
+        } else if (i === currentStep) {
+          step.classList.add('active');
+        }
+      }
+    }
+    
+    function resetForm() {
+      document.getElementById('customerGroup').style.display = 'none';
+      document.getElementById('itemsSection').style.display = 'none';
+      document.getElementById('phoneGroup').style.display = 'none';
+      document.getElementById('actionButtons').style.display = 'none';
+      document.getElementById('customerSelect').value = '';
+      document.getElementById('phoneInput').value = '';
+      selectedItems = [];
+      allItems = [];
+      updateStepIndicator(1);
+    }
+    
+    function hideItemsSection() {
+      document.getElementById('itemsSection').style.display = 'none';
+      document.getElementById('phoneGroup').style.display = 'none';
+      document.getElementById('actionButtons').style.display = 'none';
+    }
+    
+    function showAlert(message, type) {
+      const alert = document.getElementById('alert');
+      alert.textContent = message;
+      alert.className = 'alert alert-' + type;
+      alert.style.display = 'block';
+      
+      if (type !== 'info') {
+        setTimeout(function() {
+          alert.style.display = 'none';
+        }, 5000);
+      }
+    }
+    
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>

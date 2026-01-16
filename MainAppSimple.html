@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base target="_top">
+  <title>Order Management System</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    
+    .app-container {
+      max-width: 1200px;
+      width: 98vw;
+      margin: 0 auto;
+    }
+    
+    .app-header {
+      text-align: center;
+      color: white;
+      margin-bottom: 2rem;
+      padding: 1rem;
+    }
+    
+    .app-header h1 {
+      font-size: 32px;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .app-header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    
+    .tab-navigation {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .tab-button {
+      flex: 1;
+      padding: 15px 20px;
+      border: none;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .tab-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    .tab-button.active {
+      background: white;
+      color: #667eea;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .tab-icon {
+      font-size: 20px;
+    }
+    
+    .content-container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 2rem;
+      min-height: 500px;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    h2 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 24px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    input, select, datalist {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 15px center;
+      padding-right: 40px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    
+    button {
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-submit, .btn-primary {
+      flex: 1;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-submit:hover, .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-submit:disabled, .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn-reset, .btn-secondary {
+      background: #f5f5f5;
+      color: #666;
+    }
+    
+    .btn-reset:hover, .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+    
+    .alert {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+    
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+    }
+    
+    .alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 2px solid #bee5eb;
+    }
+    
+    .loading {
+      text-align: center;
+      color: #667eea;
+      font-weight: 600;
+      padding: 10px;
+      display: none;
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(102, 126, 234, 0.3);
+      border-radius: 50%;
+      border-top-color: #667eea;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .input-hint {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+    
+    /* Items Table */
+    .items-section {
+      margin-bottom: 20px;
+    }
+    
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .items-table thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .items-table th {
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    
+    .items-table tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.2s ease;
+    }
+    
+    .items-table tbody tr:hover {
+      background: #f9f9f9;
+    }
+    
+    .items-table td {
+      padding: 10px;
+    }
+    
+    .items-table input {
+      margin: 0;
+      padding: 8px 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    
+    .items-table .item-input {
+      width: 100%;
+      min-width: 150px;
+    }
+    
+    .items-table .qty-input {
+      width: 80px;
+    }
+    
+    .items-table .price-input {
+      width: 120px;
+    }
+    
+    .btn-delete {
+      background: #ff4757;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 0;
+    }
+    
+    .btn-delete:hover {
+      background: #ee5a6f;
+      transform: scale(1.1);
+    }
+    
+    .btn-add-item {
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .btn-add-item:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 0.5rem;
+      }
+      
+      .content-container {
+        padding: 1.5rem;
+      }
+      
+      .tab-navigation {
+        flex-direction: column;
+        gap: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="app-header">
+      <h1>📱 Order Management System</h1>
+      <p>Kelola order dan invoice dengan mudah</p>
+    </div>
+    
+    <div class="tab-navigation">
+      <button class="tab-button active" onclick="switchTab('input-order')">
+        <span class="tab-icon">📝</span>
+        <span>Input Order</span>
+      </button>
+      <button class="tab-button" onclick="switchTab('create-invoice')">
+        <span class="tab-icon">🧾</span>
+        <span>Create Invoice</span>
+      </button>
+    </div>
+    
+    <div class="content-container">
+      <!-- INPUT ORDER TAB -->
+      <div id="input-order" class="tab-content active">
+        <h2>📝 Input Order</h2>
+        
+        <div id="alert-order" class="alert"></div>
+        <div id="loading-order" class="loading">
+          <span class="spinner"></span> Loading...
+        </div>
+        
+        <form id="orderForm">
+          <div class="form-group">
+            <label for="sheetSelect">Pilih Sheet *</label>
+            <select id="sheetSelect" required>
+              <option value="">-- Pilih Sheet --</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="nameInput">Nama *</label>
+            <input 
+              type="text" 
+              id="nameInput" 
+              list="nameList" 
+              placeholder="Pilih atau ketik nama baru"
+              required
+              autocomplete="off">
+            <datalist id="nameList"></datalist>
+            <div class="input-hint">Pilih dari list atau ketik nama baru</div>
+          </div>
+          
+          <div class="items-section">
+            <label>Items *</label>
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th style="width: 50px;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="itemsTableBody">
+                <tr class="item-row">
+                  <td>
+                    <input type="text" class="item-input" placeholder="Nama item" required>
+                  </td>
+                  <td>
+                    <input type="number" class="qty-input" min="1" value="1" required>
+                  </td>
+                  <td>
+                    <input type="number" class="price-input" min="0" placeholder="Harga" required>
+                  </td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+            <button type="button" class="btn-add-item" id="addItemBtn">
+              <span>➕</span> Add Item
+            </button>
+          </div>
+          
+          <div class="button-group">
+            <button type="reset" class="btn-reset">Reset</button>
+            <button type="submit" class="btn-submit" id="submitOrderBtn">Submit</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- CREATE INVOICE TAB -->
+      <div id="create-invoice" class="tab-content">
+        <h2>🧾 Create Invoice</h2>
+        
+        <div id="alert-invoice" class="alert"></div>
+        <div id="loading-invoice" class="loading">
+          <span class="spinner"></span> Loading...
+        </div>
+        
+        <form id="invoiceForm">
+          <div class="form-group">
+            <label for="eventSelect">Pilih Event *</label>
+            <select id="eventSelect" required>
+              <option value="">-- Pilih Event --</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="customerGroup" style="display:none;">
+            <label for="customerSelect">Pilih Customer *</label>
+            <select id="customerSelect" required disabled>
+              <option value="">-- Pilih Customer --</option>
+            </select>
+          </div>
+          
+          <div class="form-group" id="phoneGroup" style="display:none;">
+            <label for="phoneInput">No. WhatsApp Customer *</label>
+            <input 
+              type="tel" 
+              id="phoneInput" 
+              placeholder="08123456789"
+              required
+              disabled>
+            <div class="input-hint">Format: 08xxx (tanpa +62)</div>
+          </div>
+          
+          <div id="itemsSection" style="display:none; margin-top: 20px;">
+            <label>Items</label>
+            <div id="itemsList"></div>
+            <div id="totalSection" class="total-section" style="display:none;">
+              <div class="total-label">Total</div>
+              <div class="total-amount" id="totalAmount">Rp 0</div>
+            </div>
+          </div>
+          
+          <div id="actionButtons" class="button-group" style="display:none;">
+            <button type="reset" class="btn-secondary">Reset</button>
+            <button type="submit" class="btn-primary" id="submitInvoiceBtn">Generate Invoice</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Tab switching
+    function switchTab(tabName) {
+      const buttons = document.querySelectorAll('.tab-button');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.closest('.tab-button').classList.add('active');
+      
+      const contents = document.querySelectorAll('.tab-content');
+      contents.forEach(content => content.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+    }
+    
+    // ===== INPUT ORDER LOGIC =====
+    (function() {
+      let namesData = [];
+      let rowIdCounter = 1;
+      
+      // Load sheets
+      function loadSheets() {
+        showLoading('order', true);
+        google.script.run
+          .withSuccessHandler(function(sheets) {
+            const select = document.getElementById('sheetSelect');
+            sheets.forEach(sheet => {
+              const option = document.createElement('option');
+              option.value = sheet;
+              option.textContent = sheet;
+              select.appendChild(option);
+            });
+            showLoading('order', false);
+          })
+          .withFailureHandler(function(error) {
+            showAlert('order', 'Error: ' + error.message, 'error');
+            showLoading('order', false);
+          })
+          .getSheets();
+      }
+      
+      // Handle sheet change
+      document.getElementById('sheetSelect').addEventListener('change', function() {
+        const sheetName = this.value;
+        if (sheetName) {
+          google.script.run
+            .withSuccessHandler(function(names) {
+              namesData = names;
+              const nameList = document.getElementById('nameList');
+              nameList.innerHTML = '';
+              names.forEach(n => {
+                const option = document.createElement('option');
+                option.value = n.name;
+                nameList.appendChild(option);
+              });
+            })
+            .withFailureHandler(function(error) {
+              showAlert('order', 'Error: ' + error.message, 'error');
+            })
+            .getNames(sheetName);
+        }
+      });
+      
+      // Add item
+      document.getElementById('addItemBtn').addEventListener('click', function() {
+        rowIdCounter++;
+        const tbody = document.getElementById('itemsTableBody');
+        const newRow = tbody.insertRow();
+        newRow.className = 'item-row';
+        newRow.innerHTML = `
+          <td><input type="text" class="item-input" placeholder="Nama item" required></td>
+          <td><input type="number" class="qty-input" min="1" value="1" required></td>
+          <td><input type="number" class="price-input" min="0" placeholder="Harga" required></td>
+          <td><button type="button" class="btn-delete" onclick="this.closest('tr').remove()">✕</button></td>
+        `;
+      });
+      
+      // Submit form
+      document.getElementById('orderForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const sheetName = document.getElementById('sheetSelect').value;
+        const name = document.getElementById('nameInput').value.trim();
+        const rows = document.querySelectorAll('.item-row');
+        const items = [];
+        
+        rows.forEach(row => {
+          const item = row.querySelector('.item-input').value.trim();
+          const quantity = parseInt(row.querySelector('.qty-input').value);
+          const price = parseInt(row.querySelector('.price-input').value);
+          if (item) {
+            items.push({ item, quantity, price });
+          }
+        });
+        
+        if (!sheetName || !name || items.length === 0) {
+          showAlert('order', 'Mohon lengkapi semua field!', 'error');
+          return;
+        }
+        
+        const btn = document.getElementById('submitOrderBtn');
+        btn.disabled = true;
+        showLoading('order', true);
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showAlert('order', result.message, 'success');
+              document.getElementById('orderForm').reset();
+            } else {
+              showAlert('order', result.message, 'error');
+            }
+            showLoading('order', false);
+            btn.disabled = false;
+          })
+          .withFailureHandler(function(error) {
+            showAlert('order', 'Error: ' + error.message, 'error');
+            showLoading('order', false);
+            btn.disabled = false;
+          })
+          .submitOrder({ sheetName, name, items });
+      });
+      
+      // Initialize
+      loadSheets();
+    })();
+    
+    // ===== CREATE INVOICE LOGIC =====
+    (function() {
+      let selectedItems = [];
+      
+      // Load events
+      function loadEvents() {
+        showLoading('invoice', true);
+        google.script.run
+          .withSuccessHandler(function(sheets) {
+            const select = document.getElementById('eventSelect');
+            sheets.forEach(sheet => {
+              const option = document.createElement('option');
+              option.value = sheet;
+              option.textContent = sheet;
+              select.appendChild(option);
+            });
+            showLoading('invoice', false);
+          })
+          .withFailureHandler(function(error) {
+            showAlert('invoice', 'Error: ' + error.message, 'error');
+            showLoading('invoice', false);
+          })
+          .getAvailableSheets();
+      }
+      
+      // Handle event change
+      document.getElementById('eventSelect').addEventListener('change', function() {
+        const sheetName = this.value;
+        if (sheetName) {
+          document.getElementById('customerGroup').style.display = 'block';
+          const customerSelect = document.getElementById('customerSelect');
+          customerSelect.innerHTML = '<option value="">-- Pilih Customer --</option>';
+          customerSelect.disabled = true;
+          
+          google.script.run
+            .withSuccessHandler(function(customers) {
+              customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer;
+                option.textContent = customer;
+                customerSelect.appendChild(option);
+              });
+              customerSelect.disabled = false;
+            })
+            .withFailureHandler(function(error) {
+              showAlert('invoice', 'Error: ' + error.message, 'error');
+            })
+            .getCustomersFromSheet(sheetName);
+        }
+      });
+      
+      // Handle customer change
+      document.getElementById('customerSelect').addEventListener('change', function() {
+        const sheetName = document.getElementById('eventSelect').value;
+        const customerName = this.value;
+        
+        if (customerName) {
+          showLoading('invoice', true);
+          google.script.run
+            .withSuccessHandler(function(items) {
+              selectedItems = items;
+              displayItems(items);
+              document.getElementById('phoneGroup').style.display = 'block';
+              document.getElementById('phoneInput').disabled = false;
+              document.getElementById('actionButtons').style.display = 'flex';
+              showLoading('invoice', false);
+            })
+            .withFailureHandler(function(error) {
+              showAlert('invoice', 'Error: ' + error.message, 'error');
+              showLoading('invoice', false);
+            })
+            .getCustomerItems(sheetName, customerName);
+        }
+      });
+      
+      function displayItems(items) {
+        const itemsList = document.getElementById('itemsList');
+        const itemsSection = document.getElementById('itemsSection');
+        const totalSection = document.getElementById('totalSection');
+        
+        if (items.length === 0) {
+          itemsList.innerHTML = '<p style="text-align:center;color:#999;">Tidak ada items</p>';
+          itemsSection.style.display = 'block';
+          totalSection.style.display = 'none';
+          return;
+        }
+        
+        let total = 0;
+        itemsList.innerHTML = items.map((item, i) => {
+          const subtotal = item.quantity * item.price;
+          total += subtotal;
+          return `
+            <div style="padding:10px;border-bottom:1px solid #eee;">
+              <div style="font-weight:600;">${item.item}</div>
+              <div style="font-size:13px;color:#666;">
+                ${item.quantity} x Rp ${item.price.toLocaleString('id-ID')} = 
+                <strong>Rp ${subtotal.toLocaleString('id-ID')}</strong>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        document.getElementById('totalAmount').textContent = 'Rp ' + total.toLocaleString('id-ID');
+        itemsSection.style.display = 'block';
+        totalSection.style.display = 'block';
+      }
+      
+      // Submit invoice
+      document.getElementById('invoiceForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const sheetName = document.getElementById('eventSelect').value;
+        const customerName = document.getElementById('customerSelect').value;
+        const customerPhone = document.getElementById('phoneInput').value.trim();
+        
+        if (!sheetName || !customerName || !customerPhone || selectedItems.length === 0) {
+          showAlert('invoice', 'Mohon lengkapi semua field!', 'error');
+          return;
+        }
+        
+        const btn = document.getElementById('submitInvoiceBtn');
+        btn.disabled = true;
+        showLoading('invoice', true);
+        
+        google.script.run
+          .withSuccessHandler(function(fileUrl) {
+            showAlert('invoice', 'Invoice berhasil dibuat!', 'success');
+            setTimeout(() => location.reload(), 2000);
+          })
+          .withFailureHandler(function(error) {
+            showAlert('invoice', 'Error: ' + error.message, 'error');
+            showLoading('invoice', false);
+            btn.disabled = false;
+          })
+          .generateInvoiceFromSheet({ sheetName, customerName, items: selectedItems, customerPhone });
+      });
+      
+      // Initialize
+      loadEvents();
+    })();
+    
+    // Utility functions
+    function showAlert(type, message, alertType) {
+      const alert = document.getElementById('alert-' + type);
+      alert.textContent = message;
+      alert.className = 'alert alert-' + alertType;
+      alert.style.display = 'block';
+      setTimeout(() => alert.style.display = 'none', 5000);
+    }
+    
+    function showLoading(type, show) {
+      document.getElementById('loading-' + type).style.display = show ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>
