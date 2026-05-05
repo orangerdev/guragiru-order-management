@@ -549,6 +549,7 @@
                   <th>Item</th>
                   <th>Quantity</th>
                   <th>Price</th>
+                  <th>Harga Modal</th>
                   <th style="width: 50px;">Action</th>
                 </tr>
               </thead>
@@ -562,6 +563,9 @@
                   </td>
                   <td>
                     <input type="number" class="price-input" min="0" placeholder="Harga" required>
+                  </td>
+                  <td>
+                    <input type="number" class="harga-modal-input" min="0" placeholder="Harga Modal">
                   </td>
                   <td></td>
                 </tr>
@@ -764,6 +768,7 @@
           <td><input type="text" class="item-input" placeholder="Nama item" required></td>
           <td><input type="number" class="qty-input" min="1" value="1" required></td>
           <td><input type="number" class="price-input" min="0" placeholder="Harga" required></td>
+          <td><input type="number" class="harga-modal-input" min="0" placeholder="Harga Modal"></td>
           <td><button type="button" class="btn-delete" onclick="this.closest('tr').remove()">✕</button></td>
         `;
       });
@@ -790,8 +795,10 @@
           const item = row.querySelector('.item-input').value.trim();
           const quantity = parseInt(row.querySelector('.qty-input').value);
           const price = parseInt(row.querySelector('.price-input').value);
+          const hargaModalRaw = row.querySelector('.harga-modal-input').value;
+          const hargaModal = hargaModalRaw === '' ? '' : parseInt(hargaModalRaw);
           if (item) {
-            items.push({ item, quantity, price });
+            items.push({ item, quantity, price, hargaModal });
           }
         });
         

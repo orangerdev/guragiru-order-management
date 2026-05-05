@@ -138,6 +138,7 @@ class InputOrder {
       sheet.getRange(newRow, 2).setValue(item.item);
       sheet.getRange(newRow, 3).setValue(item.quantity);
       sheet.getRange(newRow, 4).setValue(item.price);
+      sheet.getRange(newRow, 5).setValue(item.hargaModal !== undefined ? item.hargaModal : "");
     }
   }
 
@@ -164,6 +165,7 @@ class InputOrder {
       sheet.getRange(newRow, 2).setValue(item.item);
       sheet.getRange(newRow, 3).setValue(item.quantity);
       sheet.getRange(newRow, 4).setValue(item.price);
+      sheet.getRange(newRow, 5).setValue(item.hargaModal !== undefined ? item.hargaModal : "");
     }
   }
 }
