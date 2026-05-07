@@ -303,6 +303,9 @@ class CreateInvoice {
 
       Utilities.sleep(2000);
 
+      // Generate DOKU payment URL
+      let paymentUrl = "";
+
       // add shipping and discount to items array
       if (discount > 0) {
         data.selectedItems.push({
@@ -319,22 +322,35 @@ class CreateInvoice {
         });
       }
 
-      // Generate secure payment token (Doku link is created on-demand when customer clicks)
-      let paymentUrl = "";
       try {
-        paymentUrl = CreateInvoice._generatePaymentToken(invoiceId, {
-          customerName: data.customerName,
-          phone: CreateInvoice._normalizePhoneNumber(data.phoneNumber),
+        const doku = new DokuPayment(
+          CONFIG_DOKU_CLIENT_ID,
+          CONFIG_DOKU_SECRET_KEY,
+          CONFIG_DOKU_ENVIRONMENT
+        );
+
+        const normalizedPhone = CreateInvoice._normalizePhoneNumber(
+          data.phoneNumber
+        );
+        const dokuResult = doku.generatePaymentUrl({
+          invoiceNumber: invoiceId,
           amount: finalTotal,
+          customerName: data.customerName,
+          customerPhone: normalizedPhone,
           items: data.selectedItems.map((item) => ({
             name: item.item,
             quantity: item.quantity,
             price: item.price,
           })),
+          paymentDueDate: 60,
         });
-        Logger.log("Payment token URL generated: " + paymentUrl);
-      } catch (tokenError) {
-        Logger.log("Payment token generation error: " + tokenError);
+
+        if (dokuResult.success) {
+          paymentUrl = dokuResult.paymentUrl;
+          Logger.log("DOKU Payment URL generated: " + paymentUrl);
+        }
+      } catch (dokuError) {
+        Logger.log("DOKU payment URL generation error: " + dokuError);
       }
 
       // Send webhook notification
@@ -474,97 +490,6 @@ class CreateInvoice {
       .toString()
       .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     return "Rp " + parts;
-  }
-
-  /**
-   * Generates a UUID token, stores invoice data in PAYMENT_TOKENS sheet,
-   * and returns the web app payment URL with the token as parameter.
-   * @private
-   */
-  static _generatePaymentToken(invoiceId, invoiceData) {
-    const token = CreateInvoice._createUUID();
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-
-    let tokenSheet = ss.getSheetByName("PAYMENT_TOKENS");
-    if (!tokenSheet) {
-      tokenSheet = ss.insertSheet("PAYMENT_TOKENS");
-      tokenSheet.appendRow([
-        "Token",
-        "InvoiceID",
-        "CustomerName",
-        "Phone",
-        "Amount",
-        "Items",
-        "CreatedAt",
-      ]);
-    }
-
-    tokenSheet.appendRow([
-      token,
-      invoiceId,
-      invoiceData.customerName,
-      invoiceData.phone,
-      invoiceData.amount,
-      JSON.stringify(invoiceData.items),
-      new Date().toISOString(),
-    ]);
-
-    const webAppUrl = CreateInvoice._getWebAppUrl();
-    return `${webAppUrl}?action=pay&t=${token}`;
-  }
-
-  /**
-   * Looks up a payment token in the PAYMENT_TOKENS sheet.
-   * Returns the associated invoice data object, or null if not found.
-   * @private
-   */
-  static _lookupPaymentToken(token) {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const tokenSheet = ss.getSheetByName("PAYMENT_TOKENS");
-    if (!tokenSheet) return null;
-
-    const lastRow = tokenSheet.getLastRow();
-    if (lastRow <= 1) return null;
-
-    const data = tokenSheet.getRange(2, 1, lastRow - 1, 7).getValues();
-    for (const row of data) {
-      if (row[0] === token) {
-        return {
-          token: row[0],
-          invoiceId: row[1],
-          customerName: row[2],
-          phone: row[3],
-          amount: row[4],
-          items: row[5],
-          createdAt: row[6],
-        };
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Returns the web app base URL from CONFIG sheet cell B5.
-   * @private
-   */
-  static _getWebAppUrl() {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const config = ss.getSheetByName(SHEET_CONFIG);
-    const url = config.getRange("B5").getValue();
-    if (!url) throw new Error("Web app URL not configured in CONFIG B5");
-    return url.toString().trim();
-  }
-
-  /**
-   * Generates a random UUID v4.
-   * @private
-   */
-  static _createUUID() {
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-      const r = (Math.random() * 16) | 0;
-      const v = c === "x" ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
   }
 }
 

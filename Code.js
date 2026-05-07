@@ -11,69 +11,12 @@ const OUTPUT_FOLDER_ID = "1I48VLvw1PbMfkQa3OQwHYS5iWEvyMLSu"; // ganti dengan fo
 
 /**
  * Main entry point for web app
- * Routes: ?action=pay&t={token} → payment redirect
- * Default → Order Management UI
+ * Serves the main app with tab navigation
  */
 function doGet(e) {
-  const action = e && e.parameter && e.parameter.action;
-
-  if (action === "pay") {
-    return handlePaymentRedirect(e.parameter.t);
-  }
-
   return HtmlService.createHtmlOutputFromFile("MainAppSimple")
     .setTitle("Order Management System")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-}
-
-/**
- * Handles payment link clicks: looks up token, generates fresh Doku link, redirects customer
- * @param {string} token - UUID token from payment URL
- */
-function handlePaymentRedirect(token) {
-  if (!token) {
-    return HtmlService.createHtmlOutput(
-      "<p>Link pembayaran tidak valid.</p>"
-    );
-  }
-
-  try {
-    const tokenData = CreateInvoice._lookupPaymentToken(token);
-    if (!tokenData) {
-      return HtmlService.createHtmlOutput(
-        "<p>Link pembayaran tidak ditemukan atau sudah kedaluwarsa.</p>"
-      );
-    }
-
-    const doku = new DokuPayment(
-      CONFIG_DOKU_CLIENT_ID,
-      CONFIG_DOKU_SECRET_KEY,
-      CONFIG_DOKU_ENVIRONMENT
-    );
-    const dokuResult = doku.generatePaymentUrl({
-      invoiceNumber: tokenData.invoiceId,
-      amount: tokenData.amount,
-      customerName: tokenData.customerName,
-      customerPhone: tokenData.phone,
-      items: JSON.parse(tokenData.items),
-      paymentDueDate: 60,
-    });
-
-    if (!dokuResult.success) {
-      return HtmlService.createHtmlOutput(
-        "<p>Gagal membuat link pembayaran. Silakan coba lagi.</p>"
-      );
-    }
-
-    const template = HtmlService.createTemplateFromFile("PaymentRedirect");
-    template.paymentUrl = dokuResult.paymentUrl;
-    return template.evaluate().setTitle("Redirect ke Pembayaran");
-  } catch (err) {
-    Logger.log("Payment redirect error: " + err);
-    return HtmlService.createHtmlOutput(
-      "<p>Terjadi kesalahan. Silakan hubungi admin.</p>"
-    );
-  }
 }
 
 /**
