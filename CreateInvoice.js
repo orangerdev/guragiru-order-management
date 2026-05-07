@@ -124,7 +124,7 @@ class CreateInvoice {
     try {
       Logger.log(
         "generateInvoiceFromSheet called with data:",
-        JSON.stringify(data)
+        JSON.stringify(data),
       );
 
       // Debug logging
@@ -132,7 +132,7 @@ class CreateInvoice {
       Logger.log("data.selectedItems type:", typeof data.selectedItems);
       Logger.log(
         "data.selectedItems length:",
-        data.selectedItems ? data.selectedItems.length : "undefined"
+        data.selectedItems ? data.selectedItems.length : "undefined",
       );
 
       if (!data.selectedItems || data.selectedItems.length === 0) {
@@ -229,7 +229,7 @@ class CreateInvoice {
           invoiceId, // B: Invoice ID
           data.customerName, // C: Name
           data.phoneNumber, // D: Phone
-          "Ongkir", // E: Item
+          "Packing + Ongkir", // E: Item
           1, // F: Qty
           shipping, // G: Unit Price
           shipping, // H: SubTotal
@@ -265,7 +265,7 @@ class CreateInvoice {
         const pngBlob = pngResponse.getBlob();
         const pngFileName = `${invoiceId}_${data.customerName.replace(
           /[^a-zA-Z0-9]/g,
-          "_"
+          "_",
         )}.png`;
         pngBlob.setName(pngFileName);
 
@@ -291,7 +291,7 @@ class CreateInvoice {
         const pdfBlob = pdfResponse.getBlob();
         const pdfFileName = `${invoiceId}_${data.customerName.replace(
           /[^a-zA-Z0-9]/g,
-          "_"
+          "_",
         )}.pdf`;
         pdfBlob.setName(pdfFileName);
 
@@ -316,7 +316,7 @@ class CreateInvoice {
       }
       if (shipping > 0) {
         data.selectedItems.push({
-          item: "Ongkir",
+          item: "Packing + Ongkir",
           quantity: 1,
           price: shipping,
         });
@@ -326,11 +326,11 @@ class CreateInvoice {
         const doku = new DokuPayment(
           CONFIG_DOKU_CLIENT_ID,
           CONFIG_DOKU_SECRET_KEY,
-          CONFIG_DOKU_ENVIRONMENT
+          CONFIG_DOKU_ENVIRONMENT,
         );
 
         const normalizedPhone = CreateInvoice._normalizePhoneNumber(
-          data.phoneNumber
+          data.phoneNumber,
         );
         const dokuResult = doku.generatePaymentUrl({
           invoiceNumber: invoiceId,
@@ -364,7 +364,7 @@ class CreateInvoice {
           finalMimeType,
           finalFileName,
           data.selectedItems,
-          paymentUrl
+          paymentUrl,
         );
       } catch (webhookError) {
         Logger.log("Webhook failed but invoice was created:", webhookError);
@@ -389,7 +389,7 @@ class CreateInvoice {
     const today = Utilities.formatDate(
       new Date(),
       Session.getScriptTimeZone(),
-      "yyyyMMdd"
+      "yyyyMMdd",
     );
     let counterKey = "counter_" + today;
     let counter = Number(props.getProperty(counterKey) || "0");
@@ -433,7 +433,7 @@ class CreateInvoice {
     mimeType,
     fileName,
     items,
-    paymentUrl
+    paymentUrl,
   ) {
     const normalizedPhone = CreateInvoice._normalizePhoneNumber(phoneNumber);
 
@@ -442,7 +442,7 @@ class CreateInvoice {
       formattedItems = items
         .map((item) => {
           const totalHarga = CreateInvoice._formatCurrency(
-            item.quantity * item.price
+            item.quantity * item.price,
           );
           return `- ${item.item} x ${item.quantity}, ${totalHarga}`;
         })
